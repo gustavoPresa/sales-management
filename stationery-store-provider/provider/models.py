@@ -14,3 +14,17 @@ class BaseUserModel(Model):
     created_at = DateTimeField('Data de Criação', auto_now_add=True)
 
     updated_at = DateTimeField('Data de Atualização', auto_now=True)
+
+    def __str__(self) -> str:
+        return self.email
+
+
+class Client(BaseUserModel):
+    class Meta:
+        verbose_name = 'Cliente'
+
+
+class Seller(BaseUserModel):
+    class Meta:
+        verbose_name = 'Vendedor'
+        verbose_name_plural = 'Vendedores'
