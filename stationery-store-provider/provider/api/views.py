@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from provider.api.serializer import ClientSerializer
+from provider.api.serializer import ProductSerializer
 from provider.api.serializer import SellerSerializer
 from provider.models import Client
+from provider.models import Product
 from provider.models import Seller
 
 
@@ -61,6 +63,63 @@ class ClientView(APIView):
             )
 
         serializer.update(client, serializer.validated_data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ProductView(APIView):
+    def delete(self, request, product_id: str) -> Response:
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        product.delete()
+
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, product_id: str) -> Response:
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductSerializer(product)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request) -> Response:
+        product_data = request.data
+
+        if Product.objects.filter(product_code=product_data['product_code']):
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ProductSerializer(data=product_data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, product_id: str) -> Response:
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer.update(product, serializer.validated_data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
