@@ -4,9 +4,11 @@ from rest_framework.views import APIView
 
 from provider.api.serializer import ClientSerializer
 from provider.api.serializer import ProductSerializer
+from provider.api.serializer import SaleSerializer
 from provider.api.serializer import SellerSerializer
 from provider.models import Client
 from provider.models import Product
+from provider.models import Sale
 from provider.models import Seller
 
 
@@ -120,6 +122,75 @@ class ProductView(APIView):
             )
 
         serializer.update(product, serializer.validated_data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SaleView(APIView):
+    def delete(self, request, sale_id: str) -> Response:
+        try:
+            sale = Sale.objects.get(id=sale_id)
+        except Sale.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        sale.delete()
+
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, sale_id: str) -> Response:
+        try:
+            sale = Sale.objects.get(id=sale_id)
+        except Sale.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SaleSerializer(sale)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request) -> Response:
+        sale_data = request.data
+
+        if Sale.objects.filter(
+            invoice_number=sale_data['invoice_number']
+        ).exists():
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not Client.objects.filter(
+            email=sale_data['client']['email']
+        ).exists():
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not Product.objects.filter(
+            product_code=sale_data['product']['product_code']
+        ).exists():
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = SaleSerializer(data=sale_data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, sale_id: str) -> Response:
+        try:
+            sale = Sale.objects.get(id=sale_id)
+        except Sale.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SaleSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer.update(sale, serializer.validated_data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
