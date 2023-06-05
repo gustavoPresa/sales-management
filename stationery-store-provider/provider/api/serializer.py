@@ -6,9 +6,9 @@ from provider.models import Seller
 
 
 class ClientSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-    name = serializers.CharField()
-    phone_number = serializers.CharField()
+    email = serializers.EmailField(max_length=100)
+    name = serializers.CharField(max_length=50)
+    phone_number = serializers.CharField(max_length=12)
 
     class Meta:
         fields = ('id', 'email', 'name', 'phone_number')
