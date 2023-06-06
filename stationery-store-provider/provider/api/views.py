@@ -212,6 +212,18 @@ class SaleView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class SalesView(APIView):
+    def get(self, request) -> Response:
+        try:
+            sales = Sale.objects.all()
+        except Sale.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SaleSerializer(sales, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class SellerView(APIView):
     def delete(self, request, seller_id: str) -> Response:
         try:

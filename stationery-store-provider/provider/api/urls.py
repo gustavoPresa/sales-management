@@ -4,6 +4,7 @@ from provider.api.views import ClientView
 from provider.api.views import CommissionReportView
 from provider.api.views import ProductView
 from provider.api.views import SaleView
+from provider.api.views import SalesView
 from provider.api.views import SellerView
 
 
@@ -18,6 +19,7 @@ urlpatterns = [
     path('product/<str:product_id>/', ProductView.as_view()),
     path('sale/', SaleView.as_view()),
     path('sale/<str:sale_id>/', SaleView.as_view()),
+    path('sales/', SalesView.as_view()),
     path('seller/', SellerView.as_view()),
     path('seller/<str:seller_id>/', SellerView.as_view()),
 ]
