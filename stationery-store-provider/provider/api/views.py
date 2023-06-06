@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -67,6 +69,21 @@ class ClientView(APIView):
         serializer.update(client, serializer.validated_data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CommissionReportView(APIView):
+    def get(self, request, from_date: str, to_date: str) -> Response:
+        from_date = datetime.strptime(from_date, '%d-%m-%Y')
+        to_date = datetime.strptime(to_date, '%d-%m-%Y')
+
+        try:
+            sallers_list, total_commissions = (
+                Product.get_commission_report(from_date, to_date)
+            )
+        except Exception:
+            return Response({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'data': sallers_list, 'total': total_commissions})
 
 
 class ProductView(APIView):
