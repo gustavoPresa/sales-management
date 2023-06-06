@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from django.db.models import CharField
@@ -89,6 +90,57 @@ class Product(Model):
 
     class Meta:
         verbose_name = 'Produto'
+
+    @staticmethod
+    def get_commission_report(
+        from_date: datetime, to_date: datetime
+    ) -> list[dict]:
+        sallers_list = []
+        general_amount_of_commission = 0
+
+        sallers = Seller.objects.filter(
+            sale__created_at__gte=from_date,
+            sale__created_at__lte=to_date
+        ).distinct().values()
+
+        for saller in sallers:
+            if not (
+                sales := Sale.objects.filter(seller__email=saller['email'])
+            ):
+                continue
+
+            saller['total_sales'] = sales.count()
+
+            total_commission = 0
+            for sale in sales:
+                product = Product.objects.get(sale=sale)
+
+                commission_percentage = product.commission_percentage
+                if day_commission := CommissionConfig.objects.filter(
+                    day=sale.created_at.strftime('%a').lower()
+                ):
+                    day_commission = day_commission.get()
+
+                    max_value = day_commission.max_commission_percentage
+                    min_value = day_commission.min_commission_percentage
+
+                    if (commission_percentage > max_value):
+                        commission_percentage = max_value
+
+                    if (commission_percentage < min_value):
+                        commission_percentage = min_value
+
+                total_sales_value = product.unitary_value * sale.amount
+                total_commission += (
+                    (commission_percentage * total_sales_value) / 100
+                )
+
+            general_amount_of_commission += total_commission
+
+            saller['total_commission'] = total_commission
+            sallers_list.append(saller)
+
+        return sallers_list, general_amount_of_commission
 
 
 class Sale(Model):
