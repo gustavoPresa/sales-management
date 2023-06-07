@@ -3,28 +3,56 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow
+  TableRow,
+  TextField
 } from '@mui/material';
-import React from 'react';
-
-import { useEffect, useState } from 'react';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import moment from 'moment';
+import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Container, HeadTableCell } from '../style/tableStyle';
+import { Container, DateFields, HeadTableCell } from '../style/tableStyle';
 
 const Comissions = () => {
   const [commissions, setComissions] = useState([]);
-  
+  const [fromSelectedDate, setFromSelectedDate] = useState(null);
+  const [toSelectedDate, setToSelectedDate] = useState(null);
+
   useEffect(() => {
-    const url = "api/commission_report/04-06-2023/06-06-2023/";
-    api.get(url).then(({ data }) => {
-      setComissions(data.data);
-    })
-  }, []);
+    if (fromSelectedDate !== null && toSelectedDate !== null) {
+      const fromDate = moment(fromSelectedDate.$d.toISOString()).format('DD-MM-YYYY');
+      const toDate = moment(toSelectedDate.$d.toISOString()).format('DD-MM-YYYY');
+      const url = `api/commission_report/${fromDate}/${toDate}`;
+      
+      api.get(url).then(({ data }) => {
+        setComissions(data.data);
+      })
+    }
+  }, [toSelectedDate, fromSelectedDate]);
 
   return (
     <Container>
+        <DateFields>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Período de Início"
+              value={fromSelectedDate}
+              format="DD-MM-YYYY"
+              onChange={(newValue) => setFromSelectedDate(newValue)}
+              renderInput={(props) => <TextField {...props} />}
+            />
+            <DatePicker
+              label="Período de Fim"
+              value={toSelectedDate}
+              format="DD-MM-YYYY"
+              onChange={(newValue) => setToSelectedDate(newValue)}
+              renderInput={(props) => <TextField {...props} />}
+            />
+          </LocalizationProvider>
+        </DateFields>
         <h3>Relatório de Comissões</h3>
-        <Table stickyHeader aria-label='simple table'>
+        <Table>
             <TableHead>
                 <TableRow>
                     <HeadTableCell>Cód.</HeadTableCell>
@@ -43,7 +71,7 @@ const Comissions = () => {
                     </TableRow>
                 ))}
             </TableBody>
-        </Table>
+        </Table> 
     </Container>
   )
 }

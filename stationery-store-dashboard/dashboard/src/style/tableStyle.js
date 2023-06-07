@@ -10,6 +10,11 @@ export const Container = styled.div`
   }
 `;
 
+export const DateFields = styled.div`
+  float: right;
+  margin-bottom: 15px;
+`;
+
 export const HeadTableCell = styled(TableCell)`
   position: inherit !important;
   font-weight: 900 !important;
